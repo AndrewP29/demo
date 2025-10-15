@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"demo/internal/api"
-	"demo/internal/database" // Import the database package
+	"demo/internal/database"
 )
 
 func main() {
@@ -18,11 +18,14 @@ func main() {
 	defer database.DB.Close()
 	fmt.Println("Successfully connected to the database.")
 
-	// Use handlers from the 'api' package
-	http.HandleFunc("/", api.HomeHandler)
-	http.HandleFunc("/login", api.LoginHandler)
-	http.HandleFunc("/signup", api.SignupHandler)
-	http.HandleFunc("/dashboard", api.DashboardHandler)
+	// API endpoints
+	http.HandleFunc("/api/signup", api.SignupHandler)
+	http.HandleFunc("/api/login", api.LoginHandler)
+	// Future API endpoints like /api/login would go here
+
+	// Serve static files for the frontend
+	fs := http.FileServer(http.Dir("./web/static"))
+	http.Handle("/", fs)
 
 	fmt.Println("Server starting on :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))

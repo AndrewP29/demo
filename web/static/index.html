@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Twitter Clone</title>
+</head>
+<body>
+    <h1>Twitter Clone</h1>
+    
+    <div>
+        <h2>Sign Up</h2>
+        <form id="signup-form">
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="email" name="email" placeholder="Email" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <button type="submit">Sign Up</button>
+        </form>
+        <div id="signup-message" style="margin-top: 10px;"></div>
+    </div>
+
+    <div>
+        <h2>Login</h2>
+        <form id="login-form">
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+        <div id="login-message" style="margin-top: 10px;"></div>
+    </div>
+
+    <script>
+        const signupForm = document.getElementById('signup-form');
+        const signupMessage = document.getElementById('signup-message');
+
+        signupForm.addEventListener('submit', async (event) => {
+            event.preventDefault(); // Prevent the default form submission
+
+            const formData = new FormData(signupForm);
+            const userData = Object.fromEntries(formData.entries());
+
+            signupMessage.textContent = 'Signing up...';
+
+            try {
+                const response = await fetch('/api/signup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(userData),
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    signupMessage.style.color = 'green';
+                    signupMessage.textContent = `Success! User created with ID: ${result.userId}. You can now log in.`;
+                    signupForm.reset();
+                } else {
+                    signupMessage.style.color = 'red';
+                    signupMessage.textContent = `Error: ${result.error}`;
+                }
+            } catch (error) {
+                signupMessage.style.color = 'red';
+                signupMessage.textContent = 'A network error occurred. Please try again.';
+                console.error('Signup fetch error:', error);
+            }
+        });
+
+        const loginForm = document.getElementById('login-form');
+        const loginMessage = document.getElementById('login-message');
+
+        loginForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(loginForm);
+            const loginData = Object.fromEntries(formData.entries());
+
+            loginMessage.textContent = 'Logging in...';
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(loginData),
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    loginMessage.style.color = 'green';
+                    loginMessage.textContent = `Success! Logged in as user ID: ${result.userId}.`;
+                    loginForm.reset();
+                } else {
+                    loginMessage.style.color = 'red';
+                    loginMessage.textContent = `Error: ${result.error}`;
+                }
+            } catch (error) {
+                loginMessage.style.color = 'red';
+                loginMessage.textContent = 'A network error occurred. Please try again.';
+                console.error('Login fetch error:', error);
+            }
+        });
+    </script>
+</body>
+</html>

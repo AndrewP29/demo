@@ -3,76 +3,91 @@ package api
 import (
 	"demo/internal/database"
 	"demo/internal/models"
+	"encoding/json"
 	"fmt"
-	"html/template"
 	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 func SignupHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" {
-		username := r.FormValue("username")
-		email := r.FormValue("email")
-		password := r.FormValue("password")
-
-		// Hash password
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-		if err != nil {
-			http.Error(w, "Failed to hash password", http.StatusInternalServerError)
-			return
-		}
-
-		// Save to database
-		_, err = database.DB.Exec("INSERT INTO users (username, email, password) VALUES ($1, $2, $3)",
-			username, email, string(hashedPassword))
-		if err != nil {
-			http.Error(w, "Failed to create user: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		fmt.Printf("New user created: %s\n", username)
-		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+	// Decode the incoming JSON request into a User struct
+	var user models.User
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		http.Error(w, `{"error": "Invalid request body"}`, http.StatusBadRequest)
 		return
 	}
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+
+	// Hash password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		http.Error(w, `{"error": "Failed to hash password"}`, http.StatusInternalServerError)
+		return
+	}
+
+	// Save to database and get the new user's ID
+	var newUserID int
+	err = database.DB.QueryRow("INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id",
+		user.Username, user.Email, string(hashedPassword)).Scan(&newUserID)
+	if err != nil {
+		http.Error(w, fmt.Sprintf(`{"error": "Failed to create user: %s"}`, err.Error()), http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Printf("New user created: %s (ID: %d)\n", user.Username, newUserID)
+
+	// Send back a JSON response
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message": "User created successfully",
+		"userId":  newUserID,
+	})
 }
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" {
-		username := r.FormValue("username")
-		password := r.FormValue("password")
-
-		var user models.User
-		var hashedPassword string
-
-		err := database.DB.QueryRow("SELECT id, username, password FROM users WHERE username = $1", username).Scan(&user.ID, &user.Username, &hashedPassword)
-		if err != nil {
-			http.Error(w, "Invalid username or password", http.StatusUnauthorized)
-			return
-		}
-
-		err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
-		if err != nil {
-			http.Error(w, "Invalid username or password", http.StatusUnauthorized)
-			return
-		}
-
-		// Here you would typically create a session and store the user ID
-		// For simplicity, we'll just redirect to a dashboard.
-		fmt.Printf("User logged in: %s\n", user.Username)
-		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+	// Decode the incoming JSON request
+	var creds struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+	err := json.NewDecoder(r.Body).Decode(&creds)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid request body"})
 		return
 	}
-	http.Redirect(w, r, "/", http.StatusSeeOther)
-}
 
-func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl := template.Must(template.ParseFiles("web/templates/home.html"))
-	tmpl.Execute(w, nil)
-}
+	var user models.User
+	var hashedPassword string
 
-func DashboardHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl := template.Must(template.ParseFiles("web/templates/dashboard.html"))
-	tmpl.Execute(w, nil)
+	// Get user from database
+	err = database.DB.QueryRow("SELECT id, username, password FROM users WHERE username = $1", creds.Username).Scan(&user.ID, &user.Username, &hashedPassword)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid username or password"})
+		return
+	}
+
+	// Compare passwords
+	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(creds.Password))
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid username or password"})
+		return
+	}
+
+	fmt.Printf("User logged in: %s (ID: %d)\n", user.Username, user.ID)
+
+	// Send back a success response
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message": "Login successful",
+		"userId":  user.ID,
+	})
 }
