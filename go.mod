@@ -1,8 +1,8 @@
 module demo
 
-go 1.22.2
+go 1.25.2
 
 require (
-    github.com/gorilla/mux v1.8.0
-    github.com/lib/pq v1.10.9
+	github.com/lib/pq v1.10.9
+	golang.org/x/crypto v0.43.0
 )
