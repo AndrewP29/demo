@@ -88,9 +88,8 @@
                 const result = await response.json();
 
                 if (response.ok) {
-                    loginMessage.style.color = 'green';
-                    loginMessage.textContent = `Success! Logged in as user ID: ${result.userId}.`;
-                    loginForm.reset();
+                    // On success, redirect to the dashboard
+                    window.location.href = '/dashboard.html';
                 } else {
                     loginMessage.style.color = 'red';
                     loginMessage.textContent = `Error: ${result.error}`;
