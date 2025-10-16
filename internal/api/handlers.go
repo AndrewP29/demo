@@ -10,7 +10,12 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func SignupHandler(w http.ResponseWriter, r *http.Request) {
+// Server holds the dependencies for the API handlers, like the datastore.
+type Server struct {
+	Store database.Datastore
+}
+
+func (s *Server) SignupHandler(w http.ResponseWriter, r *http.Request) {
 	// Decode the incoming JSON request into a User struct
 	var user models.User
 	err := json.NewDecoder(r.Body).Decode(&user)
@@ -26,10 +31,8 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Save to database and get the new user's ID
-	var newUserID int
-	err = database.DB.QueryRow("INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id",
-		user.Username, user.Email, string(hashedPassword)).Scan(&newUserID)
+	// Use the datastore to create the user
+	newUserID, err := s.Store.CreateUser(user.Username, user.Email, string(hashedPassword))
 	if err != nil {
 		http.Error(w, fmt.Sprintf(`{"error": "Failed to create user: %s"}`, err.Error()), http.StatusInternalServerError)
 		return
@@ -46,7 +49,7 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func LoginHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	// Decode the incoming JSON request
 	var creds struct {
 		Username string `json:"username"`
@@ -60,11 +63,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var user models.User
-	var hashedPassword string
-
-	// Get user from database
-	err = database.DB.QueryRow("SELECT id, username, password FROM users WHERE username = $1", creds.Username).Scan(&user.ID, &user.Username, &hashedPassword)
+	// Get user from database using the datastore
+	user, hashedPassword, err := s.Store.GetUserByUsername(creds.Username)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
