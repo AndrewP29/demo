@@ -1,11 +1,232 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Dashboard</title>
+<title>Dashboard</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  padding: 40px 20px;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+h1 {
+  text-align: center;
+  color: white;
+  margin-bottom: 30px;
+  font-size: 32px;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  margin-bottom: 20px;
+}
+
+#user-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+#user-info h2 {
+  color: #333;
+  font-size: 24px;
+  flex: 1;
+  min-width: 200px;
+}
+
+#username-display {
+  color: #667eea;
+  font-weight: 700;
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+button:hover {
+  transform: translateY(-2px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+#signout-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+#signout-button:hover {
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+#delete-account-button {
+  background: #ef4444;
+  color: white;
+}
+
+#delete-account-button:hover {
+  box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
+}
+
+#make-post-section h2 {
+  color: #333;
+  font-size: 22px;
+  margin-bottom: 15px;
+}
+
+#post-content {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  margin-bottom: 12px;
+  transition: border-color 0.3s;
+}
+
+#post-content:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+#submit-post-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+#submit-post-button:hover {
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+#posts-section h2 {
+  color: #333;
+  font-size: 22px;
+  margin-bottom: 15px;
+}
+
+#posts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+#posts-list p {
+  color: #666;
+  text-align: center;
+  padding: 20px;
+}
+
+.post-item {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 15px;
+  border-left: 4px solid #667eea;
+}
+
+.post-author {
+  font-weight: 600;
+  color: #667eea;
+  margin-bottom: 5px;
+}
+
+.post-content {
+  color: #333;
+  line-height: 1.5;
+}
+
+.back-link {
+  display: inline-block;
+  margin-top: 20px;
+  padding: 10px 20px;
+  background: white;
+  color: #667eea;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.back-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 600px) {
+  #user-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .button-group {
+    width: 100%;
+  }
+  
+  .button-group button {
+    flex: 1;
+  }
+}
+</style>
 </head>
 <body>
-    <h1>Welcome to your Dashboard</h1>
-    <p>You are logged in.</p>
-    <a href="/">Go Back Home</a>
+<div class="container">
+<h1>Welcome to your Dashboard</h1>
+<div class="card">
+<div id="user-info">
+<h2>Hello, <span id="username-display">User</span>!</h2>
+<div class="button-group">
+<button id="signout-button">Sign Out</button>
+<button id="delete-account-button">Delete Account</button>
+</div>
+</div>
+</div>
+<div class="card">
+<div id="make-post-section">
+<h2>Make a New Post</h2>
+<textarea id="post-content" placeholder="What's on your mind?" rows="4"></textarea>
+<button id="submit-post-button">Make Post</button>
+</div>
+</div>
+<div class="card">
+<div id="posts-section">
+<h2>Recent Posts</h2>
+<div id="posts-list">
+<p>No posts to display yet.</p>
+</div>
+</div>
+</div>
+</div>
 </body>
 </html>
