@@ -20,7 +20,7 @@ type DBStore struct {
 // CreateUser inserts a new user into the database.
 func (store *DBStore) CreateUser(username, email, hashedPassword string) (int, error) {
 	var newUserID int
-	err := store.DB.QueryRow("INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id",
+	err := store.DB.QueryRow("INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3) RETURNING id",
 		username, email, hashedPassword).Scan(&newUserID)
 
 	if err != nil {
@@ -34,7 +34,7 @@ func (store *DBStore) GetUserByUsername(username string) (*models.User, string, 
 	var user models.User
 	var hashedPassword string
 
-	err := store.DB.QueryRow("SELECT id, username, password FROM users WHERE username = $1", username).Scan(&user.ID, &user.Username, &hashedPassword)
+	err := store.DB.QueryRow("SELECT id, username, password_hash FROM users WHERE username = $1", username).Scan(&user.ID, &user.Username, &hashedPassword)
 	if err != nil {
 		return nil, "", err
 	}
