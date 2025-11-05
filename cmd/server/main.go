@@ -7,6 +7,7 @@ import (
 
 	"demo/internal/api"
 	"demo/internal/database"
+	"demo/internal/session"
 )
 
 func main() {
@@ -20,7 +21,11 @@ func main() {
 
 	// A pointer to a struct where the DB field has value db
 	store := &database.DBStore{DB: db}
-	server := &api.Server{Store: store}
+
+	// Initialize the in-memory session store
+	sessStore := session.NewMemoryStore()
+
+	server := &api.Server{Store: store, SessionStore: sessStore}
 
 	fmt.Println("Successfully connected to the database.")
 
