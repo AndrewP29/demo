@@ -228,5 +228,13 @@ button:active {
 </div>
 </div>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const username = localStorage.getItem('username');
+    if (username) {
+        document.getElementById('username-display').textContent = username;
+    }
+});
+</script>
 </body>
 </html>

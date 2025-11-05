@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -93,7 +92,7 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("User logged in: %s (ID: %d)\n", user.Username, user.ID)
 
 	// Create a new session
-	sessionID, err := s.SessionStore.Create(user.ID)
+	sessionID, err := s.SessionStore.Create(int64(user.ID))
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -126,5 +125,6 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"message": "Login successful",
 		"userId":  user.ID,
+		"username": user.Username,
 	})
 }
